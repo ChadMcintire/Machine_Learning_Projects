@@ -10,6 +10,7 @@ from sklearn import datasets
 
 iris = datasets.load_iris()
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 
 def shuffleAndGroup():
@@ -57,11 +58,25 @@ class HardCodedClassifier:
     def fit( data, targets):
         m = HardCodedModel(data,targets)
         return m
+    
+#class KNeighborsClassifier:
+ #   def __init__(self,n_neighbors):
+  #      self.neighbors = n_neighbors
+        
+    #why does it break when I pass self into fit as a parameter
+   # def fit( data, targets):
+    #    m = HardCodedModel(data,targets)
+     #   return m
+    
 
 
 
 def main(argv):
     data_train, data_test , targets_train, targets_test = shuffleAndGroup()
+    
+    K_neigh = KNeighborsClassifier(n_neighbors=3, algorithm = 'kd_tree')
+    K_neighPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, K_neigh)
+    DisplayTest(K_neighPredicted, targets_train)
     
     gauss = GaussianNB()
     gaussPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, gauss)
@@ -73,3 +88,5 @@ def main(argv):
     
 if __name__== "__main__":
     main(sys.argv)
+
+
