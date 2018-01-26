@@ -35,15 +35,12 @@ def DisplayTest(targets_predicted, targets_test):
             i += 1
         print("count = ", count)
         print("target similarity percent =", count/ len(targets_predicted) * 100)
-        print(len(targets_predicted))
-        print("sep")
-        print(len(targets_test))
         
 class KNNModel:
     def __init__(self, data_train, targets_train):
         self.data = data_train
         self.targets = targets_train
-        self.k = 3
+        self.k = int(input("what k would you like to use?"))
         return None
         
     def neighborVote(self, votearray):
@@ -89,10 +86,10 @@ class KNNModel:
             targets.append(self.neighborVote(neighbors))
         return targets
     
-    
+
 class KNNClassifier:
-    def __init__(self):
-        pass  
+    def __init__(self, k):
+        self.k = k
     
     def fit(self, data, targets):
         m = KNNModel(data, targets)
@@ -101,8 +98,7 @@ class KNNClassifier:
 def main(argv):
     data_train, data_test , targets_train, targets_test = shuffleAndGroup()
     
-    K_neigh = KNNClassifier()
-    K_neigh.fit
+    K_neigh = KNNClassifier(20)
     K_neighPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, K_neigh)
     DisplayTest(K_neighPredicted, targets_test)
     
