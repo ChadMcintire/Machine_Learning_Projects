@@ -5,35 +5,32 @@ Created on Thu Jan 25 13:23:41 2018
 @author: Chad
 """
 import pandas as pd
-import numpy as np
 from sklearn import preprocessing
 from sklearn.model_selection import KFold
 
 import sys
-from sklearn import datasets
 import math
-import numpy as np
 import operator
 
 def readCSV1():    
     filename = 'C:/Users/Chad/Desktop/450/Project3/Project/car.csv'
     data = pd.read_csv(filename, skipinitialspace=True)
     df = pd.DataFrame(data = data)
-    df.columns = ['buying', 'maint','doors', 'persons', 'trunk-space', 'safety', 'targets']
+    df.columns = ['buying', 'maint','doors', 'persons', 'trunk-space', 'safety', 'targets0']
     return df
 
 def readCSV2():    
     filename = 'C:/Users/Chad/Desktop/450/Project3/Project/pima-indians-diabetes.data'
     data = pd.read_csv(filename, skipinitialspace=True)
     df = pd.DataFrame(data = data)
-    df.columns = ['pregnant', 'plasma_glucose_level','Diastolic blood pressure', 'skin fold', 'serum insulin', 'BMI', 'Diabetes pedigree function', 'age(years)','targets']
+    df.columns = ['pregnant', 'plasma_glucose_level','Diastolic blood pressure', 'skin fold', 'serum insulin', 'BMI', 'Diabetes pedigree function', 'age(years)','targets1']
     return df
 
 def readCSV3():    
     filename = 'C:/Users/Chad/Desktop/450/Project3/Project/auto-mpg.data'
     data = pd.read_csv(filename, delim_whitespace=True)
     df = pd.DataFrame(data = data)
-    df.columns = ['mpg', 'cylinders','displacement', 'horsepower', 'weight', 'acceleration', 'model year', 'origin','car name']
+    df.columns = ['mpg', 'cylinders','displacement', 'horsepower', 'weight', 'acceleration', 'model year', 'origin','car_name']
     return df
 
 def changeValueForAllColumnsToMostCommon(dataframe):
@@ -66,22 +63,57 @@ def kFoldSplit(n, data,target_data):
         y_train, y_test = target_data[train_index], target_data[test_index]
     return X_train, X_test, y_train, y_test
 
+def separateDataAndTargetsEnd(dataframe,a):
+    target = dataframe.iloc[:,a]
+    target = pd.DataFrame.as_matrix(target,columns=None)
+
+    #dat = dataframe.loc[:, dataframe.columns != dataframe.columns[a]]
+    dataframe.drop(dataframe.columns[len(dataframe.columns)-1], axis=1, inplace=True)
+    #print(a)
+    #print(dataframe.columns[a])
+    dat = pd.DataFrame.as_matrix(dataframe,columns=None)
+
+    return dat, target
+
+def separateDataAndTargetsBeginning(dataframe,b):
+    target = dataframe.iloc[:,0]
+    target = pd.DataFrame.as_matrix(target,columns=None)
+    #dat = dataframe.iloc[:,1:b]
+    dataframe.drop(dataframe.columns[0], axis=1, inplace=True)
+    dat = pd.DataFrame.as_matrix(dataframe,columns=None)
+    
+    return dat, target
+
 def experimentalShell(data_train, data_test , targets_train, targets_test, classifier):
     model = classifier.fit(data_train, targets_train)
     targets_predicted = model.predict(data_test)
     return targets_predicted
     
 
-def DisplayTest(targets_predicted, targets_test):
+def DisplayTestFloat(targets_predicted, targets_test):
+        count = 0
+        i = 0
+        
+        while i < len(targets_predicted):
+            #if targets_predicted[i] == targets_test[i]:
+            if abs(targets_predicted[i] - targets_test[i]) <= 2:    
+                count += 1
+            i += 1
+        print("count = ", count)
+        print("target similarity percent =", count/ len(targets_predicted) * 100)
+        
+def DisplayTestInt(targets_predicted, targets_test):
         count = 0
         i = 0
         
         while i < len(targets_predicted):
             if targets_predicted[i] == targets_test[i]:
+            #if abs(targets_predicted[i] - targets_test[i]) <= 2:    
                 count += 1
             i += 1
         print("count = ", count)
-        print("target similarity percent =", count/ len(targets_predicted) * 100)
+        print("target similarity percent =", count/ len(targets_predicted) * 100)        
+        
         
 class KNNModel:
     def __init__(self, data_train, targets_train):
@@ -142,12 +174,6 @@ class KNNClassifier:
         m = KNNModel(data, targets)
         return m
 
-def separateDataAndTargets(dataframe,a):
-    target = dataframe.iloc[:,a]
-    target = pd.DataFrame.as_matrix(target,columns=None)
-    dat = dataframe.iloc[:,0:a]
-    dat = pd.DataFrame.as_matrix(dataframe,columns=None)
-    return dat, target
 
     
 def main(argv):
@@ -155,20 +181,21 @@ def main(argv):
     df = readCSV1()
     for i in range(len(df.columns)):
         df.replace(df.iloc[:,i] ,categoricalToNumerical(df, i))
-    data, targets = separateDataAndTargets(df,6)
+    data, targets = separateDataAndTargetsEnd(df,6)
     data = preprocessing.normalize(data, norm='l2')
     data_train, data_test , targets_train, targets_test = kFoldSplit(10, data,targets)
     
     K_neigh = KNNClassifier()
     K_neighPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, K_neigh)
-    DisplayTest(K_neighPredicted, targets_test)
+    DisplayTestInt(K_neighPredicted, targets_test)
 
     print("Pima Data Set Predictor")   
     df2 = readCSV2()
     #taking out the 0 values from columns 3, or 4 like below reduces the accuracy
     #now it doesn't, weird
     df2 = df2[df2.iloc[:,3] != 0]
-    data, targets = separateDataAndTargets(df2,8)
+    data, targets = separateDataAndTargetsEnd(df2,8)
+
     #normalizing brings down the results 
     data = preprocessing.normalize(data, norm='l2')  
     #train the data
@@ -176,24 +203,22 @@ def main(argv):
 
     K_neigh = KNNClassifier()
     K_neighPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, K_neigh)
-    DisplayTest(K_neighPredicted, targets_test)
-
-
+    DisplayTestInt(K_neighPredicted, targets_test)
   
     print("MPG Data Set Predictor")   
     df3 = readCSV3()
-    df3.replace(df3.iloc[:,8] ,categoricalToNumerical(df3, 8))
+    #df3.replace(df3.iloc[:,8] ,categoricalToNumerical(df3, 8))
+    df3.drop(df3.columns[len(df3.columns)-1], axis=1, inplace=True)
     changeValueForAllColumnsToMostCommon(df3)
-    data, targets = separateDataAndTargets(df3,8)
-    
+    #print(df3)
+    data, targets = separateDataAndTargetsBeginning(df3,3)
+
     data = preprocessing.normalize(data, norm='l2') 
     data_train, data_test , targets_train, targets_test = kFoldSplit(10, data, targets)
-    
+
     K_neigh = KNNClassifier()
     K_neighPredicted = experimentalShell(data_train, data_test , targets_train, targets_test, K_neigh)
-    DisplayTest(K_neighPredicted, targets_test)
-
-    
+    DisplayTestFloat(K_neighPredicted, targets_test)
     
     
 if __name__== "__main__":

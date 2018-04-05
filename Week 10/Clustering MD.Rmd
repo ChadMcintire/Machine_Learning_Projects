@@ -1,0 +1,103 @@
+---
+title: "Clustering MD"
+author: "C. Mcintire"
+date: "March 18, 2018"
+output: html_document
+---
+
+```{r, include = FALSE}
+library(datasets)
+myData = state.x77
+library(tidyverse)
+library(dplyr)
+library(caret)
+```
+
+Make a Dendorgram of data
+
+```{r}
+distance = dist(as.matrix(myData))
+hc = hclust(distance)
+plot(hc)
+
+```
+
+Make a Dendorgram of data after normalizing
+```{r}
+
+preObj <- preProcess(myData, method=c("center", "scale"))
+newData <- predict(preObj, myData)
+distance = dist(as.matrix(newData))
+hc = hclust(distance)
+plot(hc)
+
+```
+
+
+Make a Dendrogram without the area data
+```{r}
+preObj <- preProcess(myData, method=c("center", "scale"))
+newData <- predict(preObj, myData)
+myDataminArea <- newData[,1:7]
+distance = dist(as.matrix(myDataminArea))
+hc = hclust(distance)
+plot(hc)
+```
+
+Make a Dendrogram the with only frost
+```{r}
+frost <- newData[,7]
+frost
+distance = dist(as.matrix(frost))
+hc = hclust(distance)
+plot(hc)
+```
+
+Get the group size and the means
+```{r}
+data_scaled = scale(myData)
+
+datCluster <- kmeans(data_scaled, 3, nstart = 20)
+
+#the means
+datCluster$centers
+
+#group size
+table(datCluster$cluster)
+
+#who is in the clusters
+datCluster$cluster
+```
+
+Save the 
+```{r}
+vector <- integer(length(1:25))
+vector2 <- integer(length(1:25))
+for (i in 1:25) {
+  datCluster <- kmeans(data_scaled, i, nstart = 20)
+  vector[i] <- datCluster$tot.withinss
+  vector2[i] <- i
+}
+
+df = data.frame(vector2,vector)
+
+g <- ggplot( df, aes(vector2,vector))
+g + geom_jitter()+
+  geom_vline(xintercept = 9)
+
+```
+
+```{r}
+data_scaled = scale(myData)
+
+datCluster <- kmeans(data_scaled, 9, nstart = 20)
+
+library(cluster)
+
+clusplot(data_scaled, datCluster$cluster, color = TRUE, shade = TRUE, labels = 2, lines = 0)
+
+sort(datCluster$cluster)
+
+datCluster$centers
+```
+
